@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karate Sensei - Entrenamiento de Reacción</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --accent-color: #d32f2f;
+      --text-color: #ffffff;
+      --text-muted: #aaaaaa;
+      --border-color: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 15px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 2px solid var(--accent-color);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      border: 1px solid var(--border-color);
+    }
+
+    .display-area {
+      text-align: center;
+      padding: 30px 10px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background-color: rgba(0,0,0,0.2);
+    }
+
+    .number-display {
+      font-size: 4rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      line-height: 1;
+    }
+
+    .technique-display {
+      font-size: 1.5rem;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    .status-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .btn-primary:active {
+      background-color: #b71c1c;
+    }
+
+    .btn-secondary {
+      background-color: #333;
+      color: white;
+      margin-top: 10px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: #2a2a2a;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .tech-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tech-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-edit { background-color: #0288d1; color: white; }
+    .btn-delete { background-color: #d32f2f; color: white; }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row input:first-child {
+      flex: 1;
+    }
+
+    .form-row input:last-child {
+      flex: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Karate Sensei</h1>
+    </header>
+
+    <div class="card">
+      <div class="display-area">
+        <div class="number-display" id="numDisplay">-</div>
+        <div class="technique-display" id="techDisplay">Presiona Iniciar</div>
+        <div class="status-text" id="statusText">Listo</div>
+      </div>
+
+      <button id="mainBtn" class="btn btn-primary">Iniciar Entrenamiento</button>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 15px;">Configuración</h2>
+      
+      <div class="control-group">
+        <label for="intervalMin">Intervalo Mínimo (seg):</label>
+        <input type="number" id="intervalMin" value="2" min="1" max="10">
+      </div>
+
+      <div class="control-group">
+        <label for="intervalMax">Intervalo Máximo (seg):</label>
+        <input type="number" id="intervalMax" value="5" min="2" max="15">
+      </div>
+
+      <div class="control-group">
+        <label for="voiceMode">Modo de Voz:</label>
+        <select id="voiceMode">
+          <option value="both">Número + Técnica</option>
+          <option value="number">Solo Número</option>
+          <option value="technique">Solo Técnica</option>
+          <option value="silent">Silencioso</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 15px;">Mapeo de Técnicas</h2>
+      
+      <div class="form-row" style="margin-bottom: 10px;">
+        <input type="number" id="inputNum" placeholder="N°">
+        <input type="text" id="inputTech" placeholder="Nombre de Técnica">
+      </div>
+      <button id="saveTechBtn" class="btn btn-secondary" style="margin-top: 0;">Guardar Técnica</button>
+
+      <div id="techList" style="margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <script>
+    let techniques = JSON.parse(localStorage.getItem('karate_techs')) || {
+      1: "Oi Tsuki",
+      2: "Gyaku Tsuki",
+      3: "Age Uke",
+      4: "Soto Uke",
+      5: "Gedan Barai"
+    };
+
+    let isRunning = false;
+    let timer = null;
+
+    const mainBtn = document.getElementById('mainBtn');
+    const numDisplay = document.getElementById('numDisplay');
+    const techDisplay = document.getElementById('techDisplay');
+    const statusText = document.getElementById('statusText');
+    const saveTechBtn = document.getElementById('saveTechBtn');
+    const techList = document.getElementById('techList');
+
+    function saveToStorage() {
+      localStorage.setItem('karate_techs', JSON.stringify(techniques));
+      renderList();
+    }
+
+    function renderList() {
+      techList.innerHTML = '';
+      Object.keys(techniques).sort((a,b) => a-b).forEach(num => {
+        const item = document.createElement('div');
+        item.className = 'tech-item';
+        item.innerHTML = `
+          <span><strong>${num}:</strong> ${techniques[num]}</span>
+          <div class="tech-item-actions">
+            <button class="btn-sm btn-edit" onclick="editTech(${num})">Editar</button>
+            <button class="btn-sm btn-delete" onclick="deleteTech(${num})">X</button>
+          </div>
+        `;
+        techList.appendChild(item);
+      });
+    }
+
+    saveTechBtn.addEventListener('click', () => {
+      const num = document.getElementById('inputNum').value;
+      const tech = document.getElementById('inputTech').value.trim();
+
+      if (num && tech) {
+        techniques[num] = tech;
+        saveToStorage();
+        document.getElementById('inputNum').value = '';
+        document.getElementById('inputTech').value = '';
+      }
+    });
+
+    window.deleteTech = function(num) {
+      delete techniques[num];
+      saveToStorage();
+    };
+
+    window.editTech = function(num) {
+      document.getElementById('inputNum').value = num;
+      document.getElementById('inputTech').value = techniques[num];
+    };
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function triggerNext() {
+      const keys = Object.keys(techniques);
+      if (keys.length === 0) return;
+
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      const techName = techniques[randomKey];
+
+      numDisplay.textContent = randomKey;
+      techDisplay.textContent = techName;
+
+      const mode = document.getElementById('voiceMode').value;
+      if (mode === 'both') speak(`${randomKey}, ${techName}`);
+      else if (mode === 'number') speak(randomKey);
+      else if (mode === 'technique') speak(techName);
+
+      scheduleNext();
+    }
+
+    function scheduleNext() {
+      if (!isRunning) return;
+      const min = parseInt(document.getElementById('intervalMin').value) || 2;
+      const max = parseInt(document.getElementById('intervalMax').value) || 5;
+      const delay = (Math.floor(Math.random() * (max - min + 1)) + min) * 1000;
+
+      timer = setTimeout(triggerNext, delay);
+    }
+
+    mainBtn.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        clearTimeout(timer);
+        mainBtn.textContent = 'Iniciar Entrenamiento';
+        mainBtn.style.backgroundColor = 'var(--accent-color)';
+        statusText.textContent = 'Pausado';
+      } else {
+        isRunning = true;
+        mainBtn.textContent = 'Detener';
+        mainBtn.style.backgroundColor = '#555';
+        statusText.textContent = 'Entrenando...';
+        triggerNext();
+      }
+    });
+
+    renderList();
+  </script>
+</body>
+</html>
