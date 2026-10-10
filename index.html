@@ -12,7 +12,6 @@
       --text-color: #ffffff;
       --text-muted: #888888;
       --border-color: #333333;
-      --line-color: #555555;
     }
 
     * {
@@ -184,7 +183,6 @@
     .form-row input:first-child { flex: 1; }
     .form-row input:last-child { flex: 2; }
 
-    /* ESTILOS DE LLAVES COPA CON IMÁGENES REALES */
     .teams-select-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -268,7 +266,6 @@
       box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
     }
 
-    /* Contenedor de la imagen del equipo */
     .team-img-badge {
       width: 28px;
       height: 28px;
@@ -355,7 +352,7 @@
       </div>
     </div>
 
-    <!-- TORNEO ESTILO COPA CON IMÁGENES REALES -->
+    <!-- TORNEO -->
     <div id="tournamentTab" class="tab-content">
       <div class="card">
         <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Equipos Habilitados</h2>
@@ -416,7 +413,7 @@ U. de Chile"></textarea>
   </div>
 
   <script>
-    /* MAPEO DE TUS IMÁGENES REALES SUBIDAS A GITHUB */
+    /* NOMBRES DIRECTOS DE TUS ARCHIVOS EN GITHUB */
     const TEAM_IMAGES = {
       lobo: 'lobo.png',
       leon: 'leon.png',
@@ -437,7 +434,6 @@ U. de Chile"></textarea>
       }
     }
 
-    /* ENTRENAMIENTO */
     let techniques = JSON.parse(localStorage.getItem('karate_techs')) || {
       1: "Oi Tsuki",
       2: "Gyaku Tsuki",
@@ -553,8 +549,7 @@ U. de Chile"></textarea>
 
     renderList();
 
-    /* TORNEO LLAVES ESTILO COPA CON IMÁGENES REALES */
-    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v4')) || null;
+    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v6')) || null;
 
     function getSelectedTeams() {
       const teams = [];
@@ -633,7 +628,7 @@ U. de Chile"></textarea>
     }
 
     function saveTreeStorage() {
-      localStorage.setItem('karate_copa_v4', JSON.stringify(tournamentTreeData));
+      localStorage.setItem('karate_copa_v6', JSON.stringify(tournamentTreeData));
       renderTree();
     }
 
@@ -661,17 +656,17 @@ U. de Chile"></textarea>
           const matchBox = document.createElement('div');
           matchBox.className = 'match-box-copa';
 
-          const imgP1 = TEAM_IMAGES[m.p1.team] || 'lobo.png';
-          const imgP2 = TEAM_IMAGES[m.p2.team] || 'lobo.png';
+          const imgP1 = TEAM_IMAGES[m.p1.team] || TEAM_IMAGES['lobo'];
+          const imgP2 = TEAM_IMAGES[m.p2.team] || TEAM_IMAGES['lobo'];
 
           matchBox.innerHTML = `
             <div class="competitor-btn-copa ${m.winner === 1 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 1)">
-              <img src="${imgP1}" class="team-img-badge" alt="escudo">
+              <img src="${imgP1}" class="team-img-badge" alt="logo">
               <span class="competitor-name-text">${m.p1.name}</span>
             </div>
 
             <div class="competitor-btn-copa ${m.winner === 2 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 2)">
-              <img src="${imgP2}" class="team-img-badge" alt="escudo">
+              <img src="${imgP2}" class="team-img-badge" alt="logo">
               <span class="competitor-name-text">${m.p2.name}</span>
             </div>
           `;
@@ -684,7 +679,7 @@ U. de Chile"></textarea>
       const finalRound = tournamentTreeData.rounds[roundKeys.length];
       if (finalRound && finalRound[0] && finalRound[0].winner) {
         const winnerObj = finalRound[0].winner === 1 ? finalRound[0].p1 : finalRound[0].p2;
-        const champImg = TEAM_IMAGES[winnerObj.team] || 'lobo.png';
+        const champImg = TEAM_IMAGES[winnerObj.team] || TEAM_IMAGES['lobo'];
 
         const champCol = document.createElement('div');
         champCol.className = 'round-column-copa';
@@ -692,7 +687,7 @@ U. de Chile"></textarea>
           <div class="round-title-copa">Campeón</div>
           <div class="champion-box-copa">
             <div style="margin-bottom: 5px; display: flex; justify-content: center;">
-              <img src="${champImg}" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid white;" alt="campeon">
+              <img src="${champImg}" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid white; object-fit: cover;" alt="campeon">
             </div>
             <div style="font-weight: bold; font-size: 0.95rem;">${winnerObj.name}</div>
             <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">🏆 GANADOR</div>
