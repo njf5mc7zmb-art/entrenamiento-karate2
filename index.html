@@ -508,7 +508,7 @@ U. de Chile"></textarea>
         const item = document.createElement('div');
         item.className = 'tech-item';
         item.innerHTML = `
-          <span><strong>${num}:</strong>${techniques[num]}</span>
+          <span><strong>${num}:</strong> ${techniques[num]}</span>
           <div class="tech-item-actions">
             <button class="btn-sm btn-edit" onclick="editTech(${num})">Editar</button>
             <button class="btn-sm btn-delete" onclick="deleteTech(${num})">X</button>
@@ -543,7 +543,7 @@ U. de Chile"></textarea>
       numDisplay.textContent = randomKey;
       techDisplay.textContent = techName;
       const mode = document.getElementById('voiceMode').value;
-      if (mode === 'both') speak(`${randomKey},${techName}`);
+      if (mode === 'both') speak(`${randomKey}, ${techName}`);
       else if (mode === 'number') speak(randomKey);
       else if (mode === 'technique') speak(techName);
       scheduleNext();
@@ -689,11 +689,11 @@ U. de Chile"></textarea>
           const imgP2 = TEAM_IMAGES[m.p2.team] || TEAM_IMAGES['lobo'];
 
           matchBox.innerHTML = `
-            <div class="competitor-btn-copa ${m.winner === 1 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum},${idx}, 1)">
+            <div class="competitor-btn-copa ${m.winner === 1 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 1)">
               <img src="${imgP1}" class="team-img-badge" alt="logo">
               <span class="competitor-name-text">${m.p1.name}</span>
             </div>
-            <div class="competitor-btn-copa ${m.winner === 2 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum},${idx}, 2)">
+            <div class="competitor-btn-copa ${m.winner === 2 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 2)">
               <img src="${imgP2}" class="team-img-badge" alt="logo">
               <span class="competitor-name-text">${m.p2.name}</span>
             </div>
@@ -782,7 +782,7 @@ U. de Chile"></textarea>
         rosterList.innerHTML += `<p style="font-size:0.85rem; color:var(--text-muted);">Sin miembros agregados.</p>`;
       } else {
         currentPlantelTemp.forEach((m, idx) => {
-          rosterList.innerHTML += `<div class="roster-item"><span>${idx+1}.${m}</span><button class="btn-sm btn-delete" onclick="removePlantelMember(${idx})">X</button></div>`;
+          rosterList.innerHTML += `<div class="roster-item"><span>${idx+1}. ${m}</span><button class="btn-sm btn-delete" onclick="removePlantelMember(${idx})">X</button></div>`;
         });
       }
 
@@ -790,4 +790,305 @@ U. de Chile"></textarea>
         lineupSelectionArea.innerHTML = `<p style="font-size:0.85rem; margin-bottom:8px;">Asigna el orden de los 3 Titulares:</p>`;
         currentPlantelTemp.forEach(m => {
           lineupSelectionArea.innerHTML += `
-            <div style="display:flex; align-items:center; justify-content:space-between; background:#222; padding:6px 10px; border-radius:6px; margin-bottom:6px; font-size:0.
+            <div style="display:flex; align-items:center; justify-content:space-between; background:#222; padding:6px 10px; border-radius:6px; margin-bottom:6px; font-size:0.85rem;">
+              <span>${m}</span>
+              <select class="lineup-pos" data-member="${m}" style="width:110px; padding:4px;">
+                <option value="0">Suplente</option>
+                <option value="1">1° Titular</option>
+                <option value="2">2° Titular</option>
+                <option value="3">3° Titular</option>
+              </select>
+            </div>
+          `;
+        });
+        finalizeTeamBtn.style.display = 'block';
+      } else {
+        lineupSelectionArea.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">Agrega mínimo 3 miembros para armar titulares.</p>`;
+        finalizeTeamBtn.style.display = 'none';
+      }
+      renderFinalizedTeamsView();
+    }
+
+    finalizeTeamBtn.addEventListener('click', () => {
+      const customName = teamCustomNameInput.value.trim();
+      if (!customName) return alert("Por favor ingresa el nombre del equipo.");
+      const symbol = teamSymbolSelect.value;
+
+      const selects = document.querySelectorAll('.lineup-pos');
+      const lineup = { 1: null, 2: null, 3: null };
+      let count = 0;
+
+      selects.forEach(sel => {
+        const pos = sel.value;
+        const name = sel.getAttribute('data-member');
+        if (pos !== "0") {
+          if (lineup[pos]) { alert("No puedes repetir la misma posición."); throw new Error("Duplicado"); }
+          lineup[pos] = name;
+          count++;
+        }
+      });
+
+      if (count !== 3) return alert("Debes seleccionar exactamente 3 titulares.");
+
+      const teamId = 'team_' + Date.now();
+      finalizedTeams[teamId] = {
+        name: customName,
+        symbol: symbol,
+        roster: [...currentPlantelTemp],
+        lineup: [lineup[1], lineup[2], lineup[3]]
+      };
+
+      localStorage.setItem('karate_finalized_teams_v4', JSON.stringify(finalizedTeams));
+      currentPlantelTemp = [];
+      teamCustomNameInput.value = '';
+      renderRosterUI();
+      alert("¡Equipo guardado con éxito! Ya puedes registrar el siguiente equipo.");
+    });
+
+    function renderFinalizedTeamsView() {
+      finalizedTeamsContainer.innerHTML = '';
+      const keys = Object.keys(finalizedTeams);
+      if (keys.length > 0) {
+        finalizedTeamsContainer.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--accent-color);">Equipos Listos en el Torneo:</h3>`;
+        keys.forEach(id => {
+          const t = finalizedTeams[id];
+          const img = TEAM_IMAGES[t.symbol];
+          finalizedTeamsContainer.innerHTML += `
+            <div style="background:#222; padding:8px 12px; border-radius:6px; margin-bottom:6px; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <img src="${img}" style="width:24px; height:24px; border-radius:4px; object-fit:cover;" alt="logo">
+                <div><strong>${t.name}</strong> (${t.lineup.join(', ')})</div>
+              </div>
+              <button class="btn-sm btn-delete" onclick="removeFinalizedTeam('${id}')">X</button>
+            </div>
+          `;
+        });
+      }
+
+      if (keys.length >= 2) {
+        startTeamTournamentBtn.style.display = 'block';
+      } else {
+        startTeamTournamentBtn.style.display = 'none';
+      }
+    }
+
+    window.removeFinalizedTeam = function(id) {
+      delete finalizedTeams[id];
+      localStorage.setItem('karate_finalized_teams_v4', JSON.stringify(finalizedTeams));
+      renderRosterUI();
+      teamTournamentCard.style.display = 'none';
+    };
+
+    startTeamTournamentBtn.addEventListener('click', () => {
+      const keys = Object.keys(finalizedTeams);
+      if (keys.length < 2) return alert("Se necesitan al menos 2 equipos.");
+
+      for (let i = keys.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [keys[i], keys[j]] = [keys[j], keys[i]];
+      }
+
+      const matches = [];
+      let restingTeam = null;
+      let matchLimit = keys.length;
+      if (keys.length % 2 !== 0) {
+        matchLimit = keys.length - 1;
+        restingTeam = keys[keys.length - 1];
+      }
+
+      for (let i = 0; i < matchLimit; i += 2) {
+        const t1 = finalizedTeams[keys[i]];
+        const t2 = finalizedTeams[keys[i+1]];
+        matches.push({
+          t1Id: keys[i], t1Name: t1.name, t1Symbol: t1.symbol,
+          t2Id: keys[i+1], t2Name: t2.name, t2Symbol: t2.symbol,
+          bouts: [
+            { p1: t1.lineup[0], p2: t2.lineup[0], winner: null },
+            { p1: t1.lineup[1], p2: t2.lineup[1], winner: null },
+            { p1: t1.lineup[2], p2: t2.lineup[2], winner: null }
+          ],
+          winner: null
+        });
+      }
+
+      teamTournamentData = {
+        rounds: { 1: matches },
+        restingTeam: restingTeam
+      };
+
+      localStorage.setItem('karate_team_tournament_v4', JSON.stringify(teamTournamentData));
+      renderTeamTournament();
+    });
+
+    window.selectTeamBoutWinner = function(rNum, matchIdx, boutIdx, winnerNum) {
+      const match = teamTournamentData.rounds[rNum][matchIdx];
+      match.bouts[boutIdx].winner = winnerNum;
+
+      let t1Wins = 0, t2Wins = 0;
+      match.bouts.forEach(b => {
+        if (b.winner === 1) t1Wins++;
+        if (b.winner === 2) t2Wins++;
+      });
+
+      if (t1Wins === 2) match.winner = 1;
+      else if (t2Wins === 2) match.winner = 2;
+
+      checkAndBuildNextTeamRound(rNum);
+
+      localStorage.setItem('karate_team_tournament_v4', JSON.stringify(teamTournamentData));
+      renderTeamTournament();
+    };
+
+    function checkAndBuildNextTeamRound(currentRNum) {
+      const currentMatches = teamTournamentData.rounds[currentRNum];
+      let allFinished = true;
+      const roundWinners = [];
+
+      currentMatches.forEach(m => {
+        if (!m.winner) allFinished = false;
+        else roundWinners.push(m.winner === 1 ? { id: m.t1Id, name: m.t1Name, symbol: m.t1Symbol } : { id: m.t2Id, name: m.t2Name, symbol: m.t2Symbol });
+      });
+
+      if (allFinished) {
+        if (teamTournamentData.restingTeam) {
+          const restT = finalizedTeams[teamTournamentData.restingTeam];
+          roundWinners.push({ id: teamTournamentData.restingTeam, name: restT.name, symbol: restT.symbol });
+          teamTournamentData.restingTeam = null;
+        }
+
+        if (roundWinners.length > 1) {
+          const nextRNum = currentRNum + 1;
+          if (!teamTournamentData.rounds[nextRNum]) {
+            const nextMatches = [];
+            let nextRest = null;
+            let limit = roundWinners.length;
+            if (roundWinners.length % 2 !== 0) {
+              limit = roundWinners.length - 1;
+              nextRest = roundWinners[roundWinners.length - 1].id;
+            }
+
+            for (let i = 0; i < limit; i += 2) {
+              const tw1 = roundWinners[i];
+              const tw2 = roundWinners[i+1];
+              const t1Data = finalizedTeams[tw1.id];
+              const t2Data = finalizedTeams[tw2.id];
+
+              nextMatches.push({
+                t1Id: tw1.id, t1Name: tw1.name, t1Symbol: tw1.symbol,
+                t2Id: tw2.id, t2Name: tw2.name, t2Symbol: tw2.symbol,
+                bouts: [
+                  { p1: t1Data.lineup[0], p2: t2Data.lineup[0], winner: null },
+                  { p1: t1Data.lineup[1], p2: t2Data.lineup[1], winner: null },
+                  { p1: t1Data.lineup[2], p2: t2Data.lineup[2], winner: null }
+                ],
+                winner: null
+              });
+            }
+            teamTournamentData.rounds[nextRNum] = nextMatches;
+            teamTournamentData.restingTeam = nextRest;
+          }
+        }
+      }
+    }
+
+    function renderTeamTournament() {
+      if (!teamTournamentData || !teamTournamentData.rounds) return;
+      teamTournamentCard.style.display = 'block';
+      teamTournamentTree.innerHTML = '';
+
+      const rKeys = Object.keys(teamTournamentData.rounds).map(Number);
+      rKeys.forEach(rNum => {
+        const col = document.createElement('div');
+        col.className = 'round-column-copa';
+        col.innerHTML = `<div class="round-title-copa">Encuentros (Ronda ${rNum})</div>`;
+
+        teamTournamentData.rounds[rNum].forEach((m, idx) => {
+          const matchDiv = document.createElement('div');
+          matchDiv.className = 'match-box-copa';
+          matchDiv.style.width = '190px';
+
+          const img1 = TEAM_IMAGES[m.t1Symbol];
+          const img2 = TEAM_IMAGES[m.t2Symbol];
+
+          let boutsHTML = '';
+          m.bouts.forEach((b, bIdx) => {
+            boutsHTML += `
+              <div style="font-size:0.65rem; color:#aaa; margin-top:4px; text-align:center;">Titular ${bIdx+1}</div>
+              <div style="display:flex; gap:3px;">
+                <button class="btn-sm ${b.winner===1?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 1)">${b.p1}</button>
+                <button class="btn-sm ${b.winner===2?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 2)">${b.p2}</button>
+              </div>
+            `;
+          });
+
+          matchDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding:2px; background:#121216; border-radius:8px;">
+              <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img1}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t1Name}</div>
+            </div>
+            <div style="text-align:center; font-size:0.65rem; color:var(--text-muted); font-weight:bold;">VS</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px; padding:2px; background:#121216; border-radius:8px;">
+              <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img2}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t2Name}</div>
+            </div>
+            ${boutsHTML}
+            <div style="margin-top:6px; text-align:center; font-size:0.7rem; font-weight:bold; color:${m.winner?'#4caf50':'#888'}">
+              ${m.winner ? '🏆 Ganador: ' + (m.winner === 1 ? m.t1Name : m.t2Name) : 'En juego'}
+            </div>
+          `;
+          col.appendChild(matchDiv);
+        });
+        teamTournamentTree.appendChild(col);
+      });
+
+      if (teamTournamentData.restingTeam) {
+        const restTeamObj = finalizedTeams[teamTournamentData.restingTeam];
+        if (restTeamObj) {
+          const restCol = document.createElement('div');
+          restCol.className = 'round-column-copa';
+          restCol.innerHTML = `
+            <div class="round-title-copa">Descansa</div>
+            <div style="background:#1e1e24; border:1px solid #3d3d4e; border-radius:16px; padding:12px; text-align:center; width:150px;">
+              <img src="${TEAM_IMAGES[restTeamObj.symbol]}" style="width:28px; height:28px; border-radius:6px; object-fit:cover; margin-bottom:4px;" alt="logo">
+              <div style="font-weight:bold; font-size:0.8rem;">${restTeamObj.name}</div>
+              <div style="font-size:0.65rem; color:var(--text-muted); margin-top:4px;">Pasa directo a la siguiente ronda</div>
+            </div>
+          `;
+          teamTournamentTree.appendChild(restCol);
+        }
+      }
+
+      const lastRoundMatches = teamTournamentData.rounds[rKeys[rKeys.length - 1]];
+      if (lastRoundMatches.length === 1 && lastRoundMatches[0].winner && !teamTournamentData.restingTeam) {
+        const finalMatch = lastRoundMatches[0];
+        const winningName = finalMatch.winner === 1 ? finalMatch.t1Name : finalMatch.t2Name;
+        const winningSymbol = finalMatch.winner === 1 ? finalMatch.t1Symbol : finalMatch.t2Symbol;
+        const winImg = TEAM_IMAGES[winningSymbol];
+
+        const champCol = document.createElement('div');
+        champCol.className = 'round-column-copa';
+        champCol.innerHTML = `
+          <div class="round-title-copa">Campeón</div>
+          <div class="champion-box-copa">
+            <div style="margin-bottom: 5px; display: flex; justify-content: center;">
+              <img src="${winImg}" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid white; object-fit: cover;" alt="campeon">
+            </div>
+            <div style="font-weight: bold; font-size: 0.95rem;">${winningName}</div>
+            <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">🎉 ¡CAMPEÓN DE KUMITE! 🎉</div>
+          </div>
+        `;
+        teamTournamentTree.appendChild(champCol);
+      }
+    }
+
+    window.clearTeamTournament = function() {
+      if (confirm("¿Deseas reiniciar y borrar el torneo de equipos?")) {
+        teamTournamentData = null;
+        localStorage.removeItem('karate_team_tournament_v4');
+        teamTournamentCard.style.display = 'none';
+      }
+    };
+
+    if (teamTournamentData) renderTeamTournament();
+    renderRosterUI();
+  </script>
+</body>
+</html>
