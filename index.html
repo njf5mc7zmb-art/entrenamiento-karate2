@@ -317,9 +317,9 @@
     </header>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('train')">Entreno</button>
-      <button class="tab-btn" onclick="switchTab('tournament')">Torneo</button>
-      <button class="tab-btn" onclick="switchTab('teamBout')">Combate Equipos</button>
+      <button class="tab-btn active" id="btnTrainTab" onclick="switchTab('train')">Entreno</button>
+      <button class="tab-btn" id="btnTournamentTab" onclick="switchTab('tournament')">Torneo</button>
+      <button class="tab-btn" id="btnTeamBoutTab" onclick="switchTab('teamBout')">Combate Equipos</button>
     </div>
 
     <!-- ENTRENAMIENTO -->
@@ -365,7 +365,7 @@
       </div>
     </div>
 
-    <!-- TORNEO INDIVIDUAL (CON SOPORTE IMPARES) -->
+    <!-- TORNEO INDIVIDUAL -->
     <div id="tournamentTab" class="tab-content">
       <div class="card">
         <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Equipos Habilitados</h2>
@@ -471,13 +471,13 @@ U. de Chile"></textarea>
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
       if (tabName === 'train') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('btnTrainTab').classList.add('active');
         document.getElementById('trainTab').classList.add('active');
       } else if (tabName === 'tournament') {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('btnTournamentTab').classList.add('active');
         document.getElementById('tournamentTab').classList.add('active');
-      } else {
-        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+      } else if (tabName === 'teamBout') {
+        document.getElementById('btnTeamBoutTab').classList.add('active');
         document.getElementById('teamBoutTab').classList.add('active');
         renderRosterUI();
       }
@@ -508,7 +508,7 @@ U. de Chile"></textarea>
         const item = document.createElement('div');
         item.className = 'tech-item';
         item.innerHTML = `
-          <span><strong>${num}:</strong> ${techniques[num]}</span>
+          <span><strong>${num}:</strong>${techniques[num]}</span>
           <div class="tech-item-actions">
             <button class="btn-sm btn-edit" onclick="editTech(${num})">Editar</button>
             <button class="btn-sm btn-delete" onclick="deleteTech(${num})">X</button>
@@ -543,4 +543,251 @@ U. de Chile"></textarea>
       numDisplay.textContent = randomKey;
       techDisplay.textContent = techName;
       const mode = document.getElementById('voiceMode').value;
-      if (mode === '
+      if (mode === 'both') speak(`${randomKey},${techName}`);
+      else if (mode === 'number') speak(randomKey);
+      else if (mode === 'technique') speak(techName);
+      scheduleNext();
+    }
+
+    function scheduleNext() {
+      if (!isRunning) return;
+      const min = parseInt(document.getElementById('intervalMin').value) || 2;
+      const max = parseInt(document.getElementById('intervalMax').value) || 5;
+      const delay = (Math.floor(Math.random() * (max - min + 1)) + min) * 1000;
+      timer = setTimeout(triggerNext, delay);
+    }
+
+    mainBtn.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false; clearTimeout(timer);
+        mainBtn.textContent = 'Iniciar Entrenamiento'; mainBtn.style.backgroundColor = 'var(--accent-color)'; statusText.textContent = 'Pausado';
+      } else {
+        isRunning = true; mainBtn.textContent = 'Detener'; mainBtn.style.backgroundColor = '#555'; statusText.textContent = 'Entrenando...'; triggerNext();
+      }
+    });
+    renderList();
+
+    /* TORNEO INDIVIDUAL */
+    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v9')) || null;
+
+    function getSelectedTeams() {
+      const teams = [];
+      if (document.getElementById('chkLobo').checked) teams.push('lobo');
+      if (document.getElementById('chkLeon').checked) teams.push('leon');
+      if (document.getElementById('chkCalamar').checked) teams.push('calamar');
+      if (document.getElementById('chkAguila').checked) teams.push('aguila');
+      return teams.length > 0 ? teams : ['lobo'];
+    }
+
+    document.getElementById('generateMatchesBtn').addEventListener('click', () => {
+      const rawText = document.getElementById('competitorsInput').value.trim();
+      if (!rawText) return alert("Ingresa competidores.");
+      let list = rawText.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
+      if (list.length < 2) return alert("Ingresa al menos 2 competidores.");
+
+      const activeTeams = getSelectedTeams();
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+
+      const participants = list.map((name, index) => ({
+        name: name,
+        team: activeTeams[index % activeTeams.length]
+      }));
+
+      let restingParticipant = null;
+      let limit = participants.length;
+      if (participants.length % 2 !== 0) {
+        limit = participants.length - 1;
+        restingParticipant = participants[participants.length - 1];
+      }
+
+      const matches = [];
+      for (let i = 0; i < limit; i += 2) {
+        matches.push({ p1: participants[i], p2: participants[i+1], winner: null });
+      }
+
+      tournamentTreeData = {
+        rounds: { 1: matches },
+        restingParticipant: restingParticipant
+      };
+      saveTreeStorage();
+    });
+
+    window.selectTreeWinner = function(roundNum, matchIdx, winnerNum) {
+      const currentMatch = tournamentTreeData.rounds[roundNum][matchIdx];
+      currentMatch.winner = winnerNum;
+
+      checkAndBuildNextIndividualRound(roundNum);
+      saveTreeStorage();
+    };
+
+    function checkAndBuildNextIndividualRound(currentRNum) {
+      const currentMatches = tournamentTreeData.rounds[currentRNum];
+      let allFinished = true;
+      const roundWinners = [];
+
+      currentMatches.forEach(m => {
+        if (!m.winner) allFinished = false;
+        else roundWinners.push(m.winner === 1 ? m.p1 : m.p2);
+      });
+
+      if (allFinished) {
+        if (tournamentTreeData.restingParticipant) {
+          roundWinners.push(tournamentTreeData.restingParticipant);
+          tournamentTreeData.restingParticipant = null;
+        }
+
+        if (roundWinners.length > 1) {
+          const nextRNum = currentRNum + 1;
+          if (!tournamentTreeData.rounds[nextRNum]) {
+            let nextRest = null;
+            let limit = roundWinners.length;
+            if (roundWinners.length % 2 !== 0) {
+              limit = roundWinners.length - 1;
+              nextRest = roundWinners[roundWinners.length - 1];
+            }
+
+            const nextMatches = [];
+            for (let i = 0; i < limit; i += 2) {
+              nextMatches.push({ p1: roundWinners[i], p2: roundWinners[i+1], winner: null });
+            }
+            tournamentTreeData.rounds[nextRNum] = nextMatches;
+            tournamentTreeData.restingParticipant = nextRest;
+          }
+        }
+      }
+    }
+
+    function saveTreeStorage() {
+      localStorage.setItem('karate_copa_v9', JSON.stringify(tournamentTreeData));
+      renderTree();
+    }
+
+    function renderTree() {
+      const container = document.getElementById('tournamentTree');
+      if (!tournamentTreeData || !tournamentTreeData.rounds) {
+        container.innerHTML = `<p style="color: var(--text-muted); text-align: center; font-size: 0.9rem; width: 100%;">Genera la llave para ver los enfrentamientos.</p>`;
+        return;
+      }
+      container.innerHTML = '';
+      const roundKeys = Object.keys(tournamentTreeData.rounds).map(Number).sort((a,b) => a-b);
+
+      roundKeys.forEach(rNum => {
+        const col = document.createElement('div');
+        col.className = 'round-column-copa';
+        let rName = `Ronda ${rNum}`;
+        if (rNum === roundKeys.length && !tournamentTreeData.restingParticipant) rName = "Final";
+        else if (rNum === roundKeys.length - 1) rName = "Semifinal";
+        col.innerHTML = `<div class="round-title-copa">${rName}</div>`;
+
+        tournamentTreeData.rounds[rNum].forEach((m, idx) => {
+          const matchBox = document.createElement('div');
+          matchBox.className = 'match-box-copa';
+          const imgP1 = TEAM_IMAGES[m.p1.team] || TEAM_IMAGES['lobo'];
+          const imgP2 = TEAM_IMAGES[m.p2.team] || TEAM_IMAGES['lobo'];
+
+          matchBox.innerHTML = `
+            <div class="competitor-btn-copa ${m.winner === 1 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum},${idx}, 1)">
+              <img src="${imgP1}" class="team-img-badge" alt="logo">
+              <span class="competitor-name-text">${m.p1.name}</span>
+            </div>
+            <div class="competitor-btn-copa ${m.winner === 2 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum},${idx}, 2)">
+              <img src="${imgP2}" class="team-img-badge" alt="logo">
+              <span class="competitor-name-text">${m.p2.name}</span>
+            </div>
+          `;
+          col.appendChild(matchBox);
+        });
+        container.appendChild(col);
+      });
+
+      if (tournamentTreeData.restingParticipant) {
+        const restP = tournamentTreeData.restingParticipant;
+        const restCol = document.createElement('div');
+        restCol.className = 'round-column-copa';
+        restCol.innerHTML = `
+          <div class="round-title-copa">Descansa</div>
+          <div style="background:#1e1e24; border:1px solid #3d3d4e; border-radius:16px; padding:12px; text-align:center; width:150px;">
+            <img src="${TEAM_IMAGES[restP.team]}" style="width:28px; height:28px; border-radius:6px; object-fit:cover; margin-bottom:4px;" alt="logo">
+            <div style="font-weight:bold; font-size:0.8rem;">${restP.name}</div>
+            <div style="font-size:0.65rem; color:var(--text-muted); margin-top:4px;">Pasa directo a la siguiente ronda</div>
+          </div>
+        `;
+        container.appendChild(restCol);
+      }
+
+      const lastRoundMatches = tournamentTreeData.rounds[roundKeys[roundKeys.length - 1]];
+      if (lastRoundMatches.length === 1 && lastRoundMatches[0].winner && !tournamentTreeData.restingParticipant) {
+        const finalMatch = lastRoundMatches[0];
+        const winnerObj = finalMatch.winner === 1 ? finalMatch.p1 : finalMatch.p2;
+        const champImg = TEAM_IMAGES[winnerObj.team] || TEAM_IMAGES['lobo'];
+
+        const champCol = document.createElement('div');
+        champCol.className = 'round-column-copa';
+        champCol.innerHTML = `
+          <div class="round-title-copa">Campeón</div>
+          <div class="champion-box-copa">
+            <div style="margin-bottom: 5px; display: flex; justify-content: center;">
+              <img src="${champImg}" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid white; object-fit: cover;" alt="campeon">
+            </div>
+            <div style="font-weight: bold; font-size: 0.95rem;">${winnerObj.name}</div>
+            <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">🎉 ¡CAMPEÓN! 🎉</div>
+          </div>
+        `;
+        container.appendChild(champCol);
+      }
+    }
+
+    window.clearTournament = function() {
+      if (confirm("¿Reiniciar torneo individual?")) { tournamentTreeData = null; localStorage.removeItem('karate_copa_v9'); renderTree(); }
+    };
+    renderTree();
+
+    /* COMBATE POR EQUIPOS */
+    let currentPlantelTemp = [];
+    let finalizedTeams = JSON.parse(localStorage.getItem('karate_finalized_teams_v4')) || {};
+    let teamTournamentData = JSON.parse(localStorage.getItem('karate_team_tournament_v4')) || null;
+
+    const teamSymbolSelect = document.getElementById('teamSymbolSelect');
+    const teamCustomNameInput = document.getElementById('teamCustomNameInput');
+    const rosterMemberInput = document.getElementById('rosterMemberInput');
+    const addRosterBtn = document.getElementById('addRosterBtn');
+    const rosterList = document.getElementById('rosterList');
+    const lineupSelectionArea = document.getElementById('lineupSelectionArea');
+    const finalizeTeamBtn = document.getElementById('finalizeTeamBtn');
+    const finalizedTeamsContainer = document.getElementById('finalizedTeamsContainer');
+    const startTeamTournamentBtn = document.getElementById('startTeamTournamentBtn');
+    const teamTournamentCard = document.getElementById('teamTournamentCard');
+    const teamTournamentTree = document.getElementById('teamTournamentTree');
+
+    addRosterBtn.addEventListener('click', () => {
+      const name = rosterMemberInput.value.trim();
+      if (!name) return alert("Ingresa un nombre.");
+      if (currentPlantelTemp.length >= 6) return alert("Máximo 6 integrantes por plantel.");
+      currentPlantelTemp.push(name);
+      rosterMemberInput.value = '';
+      renderRosterUI();
+    });
+
+    window.removePlantelMember = function(idx) {
+      currentPlantelTemp.splice(idx, 1);
+      renderRosterUI();
+    };
+
+    function renderRosterUI() {
+      rosterList.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text-muted);">Plantel Temporal (${currentPlantelTemp.length}/6):</h3>`;
+      if (currentPlantelTemp.length === 0) {
+        rosterList.innerHTML += `<p style="font-size:0.85rem; color:var(--text-muted);">Sin miembros agregados.</p>`;
+      } else {
+        currentPlantelTemp.forEach((m, idx) => {
+          rosterList.innerHTML += `<div class="roster-item"><span>${idx+1}.${m}</span><button class="btn-sm btn-delete" onclick="removePlantelMember(${idx})">X</button></div>`;
+        });
+      }
+
+      if (currentPlantelTemp.length >= 3) {
+        lineupSelectionArea.innerHTML = `<p style="font-size:0.85rem; margin-bottom:8px;">Asigna el orden de los 3 Titulares:</p>`;
+        currentPlantelTemp.forEach(m => {
+          lineupSelectionArea.innerHTML += `
+            <div style="display:flex; align-items:center; justify-content:space-between; background:#222; padding:6px 10px; border-radius:6px; margin-bottom:6px; font-size:0.
