@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Karate Dojo - Entrenamiento, Torneo y Equipos</title>
   <style>
     :root {
@@ -19,6 +19,8 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
@@ -37,6 +39,8 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      position: relative;
+      z-index: 1;
     }
 
     header {
@@ -57,11 +61,13 @@
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid var(--border-color);
+      position: relative;
+      z-index: 5;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px 6px;
+      padding: 12px 6px;
       background: none;
       border: none;
       color: var(--text-muted);
@@ -93,6 +99,8 @@
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       border: 1px solid var(--border-color);
+      position: relative;
+      z-index: 2;
     }
 
     .display-area {
@@ -138,6 +146,8 @@
       cursor: pointer;
       transition: background-color 0.2s;
       text-transform: uppercase;
+      position: relative;
+      z-index: 10;
     }
 
     .btn-primary { background-color: var(--accent-color); color: white; }
@@ -161,6 +171,8 @@
       background-color: #2a2a2a;
       color: white;
       font-size: 1rem;
+      position: relative;
+      z-index: 5;
     }
 
     textarea { resize: vertical; min-height: 90px; }
@@ -176,7 +188,7 @@
     }
 
     .tech-item-actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; }
+    .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; position: relative; z-index: 10; }
     .btn-edit { background-color: #0288d1; color: white; }
     .btn-delete { background-color: #d32f2f; color: white; }
 
@@ -259,6 +271,8 @@
       padding: 4px 8px;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
+      z-index: 10;
     }
 
     .competitor-btn-copa.winner {
@@ -275,6 +289,7 @@
       flex-shrink: 0;
       border: 1px solid rgba(255,255,255,0.2);
       background-color: #222;
+      pointer-events: none;
     }
 
     .competitor-name-text {
@@ -285,6 +300,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex: 1;
+      pointer-events: none;
     }
 
     .champion-box-copa {
@@ -568,7 +584,7 @@ U. de Chile"></textarea>
     renderList();
 
     /* TORNEO INDIVIDUAL */
-    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v9')) || null;
+    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v10')) || null;
 
     function getSelectedTeams() {
       const teams = [];
@@ -661,7 +677,7 @@ U. de Chile"></textarea>
     }
 
     function saveTreeStorage() {
-      localStorage.setItem('karate_copa_v9', JSON.stringify(tournamentTreeData));
+      localStorage.setItem('karate_copa_v10', JSON.stringify(tournamentTreeData));
       renderTree();
     }
 
@@ -741,14 +757,14 @@ U. de Chile"></textarea>
     }
 
     window.clearTournament = function() {
-      if (confirm("¿Reiniciar torneo individual?")) { tournamentTreeData = null; localStorage.removeItem('karate_copa_v9'); renderTree(); }
+      if (confirm("¿Reiniciar torneo individual?")) { tournamentTreeData = null; localStorage.removeItem('karate_copa_v10'); renderTree(); }
     };
     renderTree();
 
     /* COMBATE POR EQUIPOS */
     let currentPlantelTemp = [];
-    let finalizedTeams = JSON.parse(localStorage.getItem('karate_finalized_teams_v4')) || {};
-    let teamTournamentData = JSON.parse(localStorage.getItem('karate_team_tournament_v4')) || null;
+    let finalizedTeams = JSON.parse(localStorage.getItem('karate_finalized_teams_v5')) || {};
+    let teamTournamentData = JSON.parse(localStorage.getItem('karate_team_tournament_v5')) || null;
 
     const teamSymbolSelect = document.getElementById('teamSymbolSelect');
     const teamCustomNameInput = document.getElementById('teamCustomNameInput');
@@ -838,7 +854,7 @@ U. de Chile"></textarea>
         lineup: [lineup[1], lineup[2], lineup[3]]
       };
 
-      localStorage.setItem('karate_finalized_teams_v4', JSON.stringify(finalizedTeams));
+      localStorage.setItem('karate_finalized_teams_v5', JSON.stringify(finalizedTeams));
       currentPlantelTemp = [];
       teamCustomNameInput.value = '';
       renderRosterUI();
@@ -874,7 +890,7 @@ U. de Chile"></textarea>
 
     window.removeFinalizedTeam = function(id) {
       delete finalizedTeams[id];
-      localStorage.setItem('karate_finalized_teams_v4', JSON.stringify(finalizedTeams));
+      localStorage.setItem('karate_finalized_teams_v5', JSON.stringify(finalizedTeams));
       renderRosterUI();
       teamTournamentCard.style.display = 'none';
     };
@@ -916,7 +932,7 @@ U. de Chile"></textarea>
         restingTeam: restingTeam
       };
 
-      localStorage.setItem('karate_team_tournament_v4', JSON.stringify(teamTournamentData));
+      localStorage.setItem('karate_team_tournament_v5', JSON.stringify(teamTournamentData));
       renderTeamTournament();
     });
 
@@ -935,7 +951,7 @@ U. de Chile"></textarea>
 
       checkAndBuildNextTeamRound(rNum);
 
-      localStorage.setItem('karate_team_tournament_v4', JSON.stringify(teamTournamentData));
+      localStorage.setItem('karate_team_tournament_v5', JSON.stringify(teamTournamentData));
       renderTeamTournament();
     };
 
@@ -1082,7 +1098,7 @@ U. de Chile"></textarea>
     window.clearTeamTournament = function() {
       if (confirm("¿Deseas reiniciar y borrar el torneo de equipos?")) {
         teamTournamentData = null;
-        localStorage.removeItem('karate_team_tournament_v4');
+        localStorage.removeItem('karate_team_tournament_v5');
         teamTournamentCard.style.display = 'none';
       }
     };
