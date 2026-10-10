@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Karate Dojo - Entrenamiento y Torneo</title>
+  <title>Karate Dojo - Torneo y Entrenamiento</title>
   <style>
     :root {
       --bg-color: #0d0d0d;
@@ -141,16 +141,8 @@
       text-transform: uppercase;
     }
 
-    .btn-primary {
-      background-color: var(--accent-color);
-      color: white;
-    }
-
-    .btn-secondary {
-      background-color: #333;
-      color: white;
-      margin-top: 10px;
-    }
+    .btn-primary { background-color: var(--accent-color); color: white; }
+    .btn-secondary { background-color: #333; color: white; margin-top: 10px; }
 
     .control-group {
       display: flex;
@@ -159,10 +151,7 @@
       margin-bottom: 12px;
     }
 
-    label {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
+    label { font-size: 0.9rem; color: var(--text-muted); }
 
     input, select, textarea {
       width: 100%;
@@ -174,10 +163,7 @@
       font-size: 1rem;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 90px;
-    }
+    textarea { resize: vertical; min-height: 90px; }
 
     .tech-item {
       display: flex;
@@ -190,15 +176,7 @@
     }
 
     .tech-item-actions { display: flex; gap: 8px; }
-
-    .btn-sm {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-    }
-
+    .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; }
     .btn-edit { background-color: #0288d1; color: white; }
     .btn-delete { background-color: #d32f2f; color: white; }
 
@@ -206,7 +184,7 @@
     .form-row input:first-child { flex: 1; }
     .form-row input:last-child { flex: 2; }
 
-    /* ESTILOS DE LLAVES TIPO COPA (DISEÑO COPA MUNDIAL) */
+    /* ESTILOS DE LLAVES COPA CON IMÁGENES REALES */
     .teams-select-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -228,7 +206,6 @@
 
     .team-checkbox-card input { width: auto; }
 
-    /* Árbol Deslizable Horizontalmente */
     .bracket-scroll-container {
       width: 100%;
       overflow-x: auto;
@@ -241,7 +218,6 @@
       gap: 40px;
       align-items: center;
       min-width: max-content;
-      position: relative;
     }
 
     .round-column-copa {
@@ -249,7 +225,7 @@
       flex-direction: column;
       justify-content: space-around;
       gap: 30px;
-      min-width: 130px;
+      min-width: 140px;
     }
 
     .round-title-copa {
@@ -262,7 +238,6 @@
       letter-spacing: 1px;
     }
 
-    /* Tarjetas Compactas de la Imagen */
     .match-box-copa {
       background: #1e1e24;
       border: 1px solid #3d3d4e;
@@ -271,9 +246,8 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      width: 130px;
+      width: 140px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-      position: relative;
     }
 
     .competitor-btn-copa {
@@ -294,28 +268,15 @@
       box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
     }
 
-    /* Iconos SVG Estilo Escudo Banner */
-    .shield-badge {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* Contenedor de la imagen del equipo */
+    .team-img-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      object-fit: cover;
       flex-shrink: 0;
-      overflow: hidden;
       border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .badge-lobo { background: linear-gradient(135deg, #1b3a20, #388e3c); }
-    .badge-leon { background: linear-gradient(135deg, #4a1212, #d32f2f); }
-    .badge-calamar { background: linear-gradient(135deg, #0d274c, #1976d2); }
-    .badge-aguila { background: linear-gradient(135deg, #4a3b00, #fbc02d); }
-
-    .shield-badge svg {
-      width: 22px;
-      height: 22px;
-      fill: #ffffff;
+      background-color: #222;
     }
 
     .competitor-name-text {
@@ -326,16 +287,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex: 1;
-    }
-
-    /* Conectores tipo Copa entre rondas */
-    .connector-line {
-      position: absolute;
-      right: -20px;
-      top: 50%;
-      width: 20px;
-      height: 2px;
-      background-color: var(--line-color);
     }
 
     .champion-box-copa {
@@ -404,7 +355,7 @@
       </div>
     </div>
 
-    <!-- TORNEO ESTILO COPA MUNDIAL CON LOGOS -->
+    <!-- TORNEO ESTILO COPA CON IMÁGENES REALES -->
     <div id="tournamentTab" class="tab-content">
       <div class="card">
         <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Equipos Habilitados</h2>
@@ -451,10 +402,9 @@ U. de Chile"></textarea>
         </div>
 
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-          👉 Desliza hacia la derecha para ver todas las rondas. Haz clic en un escudo para marcarlo como ganador.
+          👉 Desliza hacia la derecha para ver todas las rondas. Haz clic en un competidor para marcarlo como ganador.
         </p>
 
-        <!-- Arrastrable horizontalmente -->
         <div class="bracket-scroll-container">
           <div id="tournamentTree" class="tournament-tree-copa">
             <p style="color: var(--text-muted); text-align: center; font-size: 0.9rem; width: 100%;">Genera la llave para ver los enfrentamientos.</p>
@@ -466,12 +416,12 @@ U. de Chile"></textarea>
   </div>
 
   <script>
-    /* EMBLEMAS SVG VECTORIALES EXACTOS DE TUS FOTOS */
-    const TEAM_BADGES = {
-      lobo: `<div class="shield-badge badge-lobo"><svg viewBox="0 0 24 24"><path d="M12 2L4 7v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V7l-8-5zm1 14.5l-2-1.5-2 1.5.5-2.5-2-1.5 2.5-.2L11 10l1 2.3 2.5.2-2 1.5.5 2.5z"/></svg></div>`,
-      leon: `<div class="shield-badge badge-leon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 3 1.5 5.5 3.5 7.5L12 22l3.5-5.5c2-2 3.5-4.5 3.5-7.5a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></div>`,
-      calamar: `<div class="shield-badge badge-calamar"><svg viewBox="0 0 24 24"><path d="M12 2C8.7 2 6 4.7 6 8c0 3.5 2.5 6 3 9.5 0 1.5-1 2.5-2 2.5s-1.5-1-1.5-2H4c0 2.5 1.8 4 3.5 4 2.2 0 3.5-1.8 3.5-3.5V11h2v7.5c0 1.7 1.3 3.5 3.5 3.5 1.7 0 3.5-1.5 3.5-4h-1.5c0 1-1 2-2 2s-2-1-2-2.5c.5-3.5 3-6 3-9.5 0-3.3-2.7-6-6-6z"/></svg></div>`,
-      aguila: `<div class="shield-badge badge-aguila"><svg viewBox="0 0 24 24"><path d="M12 2L3 7v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V7l-9-5zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>`
+    /* MAPEO DE TUS IMÁGENES REALES SUBIDAS A GITHUB */
+    const TEAM_IMAGES = {
+      lobo: 'lobo.png',
+      leon: 'leon.png',
+      calamar: 'calamar.png',
+      aguila: 'aguila.png'
     };
 
     function switchTab(tabName) {
@@ -603,8 +553,8 @@ U. de Chile"></textarea>
 
     renderList();
 
-    /* TORNEO LLAVES ESTILO COPA */
-    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v3')) || null;
+    /* TORNEO LLAVES ESTILO COPA CON IMÁGENES REALES */
+    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v4')) || null;
 
     function getSelectedTeams() {
       const teams = [];
@@ -624,7 +574,6 @@ U. de Chile"></textarea>
 
       const activeTeams = getSelectedTeams();
 
-      // Mezclar
       for (let i = list.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [list[i], list[j]] = [list[j], list[i]];
@@ -684,7 +633,7 @@ U. de Chile"></textarea>
     }
 
     function saveTreeStorage() {
-      localStorage.setItem('karate_copa_v3', JSON.stringify(tournamentTreeData));
+      localStorage.setItem('karate_copa_v4', JSON.stringify(tournamentTreeData));
       renderTree();
     }
 
@@ -712,14 +661,17 @@ U. de Chile"></textarea>
           const matchBox = document.createElement('div');
           matchBox.className = 'match-box-copa';
 
+          const imgP1 = TEAM_IMAGES[m.p1.team] || 'lobo.png';
+          const imgP2 = TEAM_IMAGES[m.p2.team] || 'lobo.png';
+
           matchBox.innerHTML = `
             <div class="competitor-btn-copa ${m.winner === 1 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 1)">
-              ${TEAM_BADGES[m.p1.team] || TEAM_BADGES['lobo']}
+              <img src="${imgP1}" class="team-img-badge" alt="escudo">
               <span class="competitor-name-text">${m.p1.name}</span>
             </div>
 
             <div class="competitor-btn-copa ${m.winner === 2 ? 'winner' : ''}" onclick="selectTreeWinner(${rNum}, ${idx}, 2)">
-              ${TEAM_BADGES[m.p2.team] || TEAM_BADGES['lobo']}
+              <img src="${imgP2}" class="team-img-badge" alt="escudo">
               <span class="competitor-name-text">${m.p2.name}</span>
             </div>
           `;
@@ -729,16 +681,19 @@ U. de Chile"></textarea>
         container.appendChild(col);
       });
 
-      // Ganador / Campeón Final
       const finalRound = tournamentTreeData.rounds[roundKeys.length];
       if (finalRound && finalRound[0] && finalRound[0].winner) {
         const winnerObj = finalRound[0].winner === 1 ? finalRound[0].p1 : finalRound[0].p2;
+        const champImg = TEAM_IMAGES[winnerObj.team] || 'lobo.png';
+
         const champCol = document.createElement('div');
         champCol.className = 'round-column-copa';
         champCol.innerHTML = `
           <div class="round-title-copa">Campeón</div>
           <div class="champion-box-copa">
-            <div style="margin-bottom: 5px;">${TEAM_BADGES[winnerObj.team]}</div>
+            <div style="margin-bottom: 5px; display: flex; justify-content: center;">
+              <img src="${champImg}" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid white;" alt="campeon">
+            </div>
             <div style="font-weight: bold; font-size: 0.95rem;">${winnerObj.name}</div>
             <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.8;">🏆 GANADOR</div>
           </div>
