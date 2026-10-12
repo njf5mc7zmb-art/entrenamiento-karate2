@@ -253,11 +253,11 @@
       background: #1e1e24;
       border: 1px solid #3d3d4e;
       border-radius: 16px;
-      padding: 6px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      width: 175px;
+      gap: 6px;
+      width: 210px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.6);
     }
 
@@ -309,7 +309,7 @@
       padding: 15px;
       text-align: center;
       color: white;
-      width: 150px;
+      width: 160px;
       box-shadow: 0 0 15px rgba(211, 47, 47, 0.5);
     }
 
@@ -427,7 +427,7 @@ U. de Chile"></textarea>
     <!-- COMBATE POR EQUIPOS -->
     <div id="teamBoutTab" class="tab-content">
       <div class="card">
-        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Configurar Equipo</h2>
+        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Configurar Plantel del Equipo</h2>
         <div class="control-group">
           <label>Símbolo Base (Logo):</label>
           <select id="teamSymbolSelect">
@@ -442,7 +442,7 @@ U. de Chile"></textarea>
           <input type="text" id="teamCustomNameInput" placeholder="Ej: Dojo Central / Team Titanes">
         </div>
         <div class="control-group">
-          <label>Integrante del Plantel:</label>
+          <label>Integrante del Plantel (Hasta 6):</label>
           <input type="text" id="rosterMemberInput" placeholder="Nombre del Karateka">
         </div>
         <button id="addRosterBtn" class="btn btn-secondary" style="margin-top: 0;">Agregar al Plantel</button>
@@ -450,13 +450,10 @@ U. de Chile"></textarea>
       </div>
 
       <div class="card">
-        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Elegir Titulares (Mín 3)</h2>
-        <div id="lineupSelectionArea">
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Configura equipo y agrega integrantes primero.</p>
+        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Planteles Registrados</h2>
+        <div id="finalizedTeamsContainer">
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Agrega equipos con al menos 3 integrantes.</p>
         </div>
-        <button id="finalizeTeamBtn" class="btn btn-success" style="margin-top: 15px; display:none;">Finalizar Equipo</button>
-        
-        <div id="finalizedTeamsContainer" style="margin-top: 20px;"></div>
         <button id="startTeamTournamentBtn" class="btn btn-primary" style="margin-top: 20px; display:none;">Comenzar Competencia por Equipos</button>
       </div>
 
@@ -584,7 +581,7 @@ U. de Chile"></textarea>
     renderList();
 
     /* TORNEO INDIVIDUAL */
-    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v10')) || null;
+    let tournamentTreeData = JSON.parse(localStorage.getItem('karate_copa_v11')) || null;
 
     function getSelectedTeams() {
       const teams = [];
@@ -677,7 +674,7 @@ U. de Chile"></textarea>
     }
 
     function saveTreeStorage() {
-      localStorage.setItem('karate_copa_v10', JSON.stringify(tournamentTreeData));
+      localStorage.setItem('karate_copa_v11', JSON.stringify(tournamentTreeData));
       renderTree();
     }
 
@@ -757,22 +754,20 @@ U. de Chile"></textarea>
     }
 
     window.clearTournament = function() {
-      if (confirm("¿Reiniciar torneo individual?")) { tournamentTreeData = null; localStorage.removeItem('karate_copa_v10'); renderTree(); }
+      if (confirm("¿Reiniciar torneo individual?")) { tournamentTreeData = null; localStorage.removeItem('karate_copa_v11'); renderTree(); }
     };
     renderTree();
 
-    /* COMBATE POR EQUIPOS */
+    /* COMBATE POR EQUIPOS CON PLANTEL Y RE-SELECCIÓN DE TITULARES POR RONDA */
     let currentPlantelTemp = [];
-    let finalizedTeams = JSON.parse(localStorage.getItem('karate_finalized_teams_v5')) || {};
-    let teamTournamentData = JSON.parse(localStorage.getItem('karate_team_tournament_v5')) || null;
+    let finalizedTeams = JSON.parse(localStorage.getItem('karate_finalized_teams_v6')) || {};
+    let teamTournamentData = JSON.parse(localStorage.getItem('karate_team_tournament_v6')) || null;
 
     const teamSymbolSelect = document.getElementById('teamSymbolSelect');
     const teamCustomNameInput = document.getElementById('teamCustomNameInput');
     const rosterMemberInput = document.getElementById('rosterMemberInput');
     const addRosterBtn = document.getElementById('addRosterBtn');
     const rosterList = document.getElementById('rosterList');
-    const lineupSelectionArea = document.getElementById('lineupSelectionArea');
-    const finalizeTeamBtn = document.getElementById('finalizeTeamBtn');
     const finalizedTeamsContainer = document.getElementById('finalizedTeamsContainer');
     const startTeamTournamentBtn = document.getElementById('startTeamTournamentBtn');
     const teamTournamentCard = document.getElementById('teamTournamentCard');
@@ -793,7 +788,7 @@ U. de Chile"></textarea>
     };
 
     function renderRosterUI() {
-      rosterList.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text-muted);">Plantel Temporal (${currentPlantelTemp.length}/6):</h3>`;
+      rosterList.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text-muted);">Plantel en Edición (${currentPlantelTemp.length}/6):</h3>`;
       if (currentPlantelTemp.length === 0) {
         rosterList.innerHTML += `<p style="font-size:0.85rem; color:var(--text-muted);">Sin miembros agregados.</p>`;
       } else {
@@ -803,69 +798,51 @@ U. de Chile"></textarea>
       }
 
       if (currentPlantelTemp.length >= 3) {
-        lineupSelectionArea.innerHTML = `<p style="font-size:0.85rem; margin-bottom:8px;">Asigna el orden de los 3 Titulares:</p>`;
-        currentPlantelTemp.forEach(m => {
-          lineupSelectionArea.innerHTML += `
-            <div style="display:flex; align-items:center; justify-content:space-between; background:#222; padding:6px 10px; border-radius:6px; margin-bottom:6px; font-size:0.85rem;">
-              <span>${m}</span>
-              <select class="lineup-pos" data-member="${m}" style="width:110px; padding:4px;">
-                <option value="0">Suplente</option>
-                <option value="1">1° Titular</option>
-                <option value="2">2° Titular</option>
-                <option value="3">3° Titular</option>
-              </select>
-            </div>
-          `;
-        });
-        finalizeTeamBtn.style.display = 'block';
+        if (!document.getElementById('saveTeamBtn')) {
+          const btn = document.createElement('button');
+          btn.id = 'saveTeamBtn';
+          btn.className = 'btn btn-success';
+          btn.style.marginTop = '15px';
+          btn.textContent = 'Guardar Equipo en el Torneo';
+          btn.onclick = saveTeamToTournament;
+          rosterList.parentNode.appendChild(btn);
+        }
       } else {
-        lineupSelectionArea.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">Agrega mínimo 3 miembros para armar titulares.</p>`;
-        finalizeTeamBtn.style.display = 'none';
+        const existingBtn = document.getElementById('saveTeamBtn');
+        if (existingBtn) existingBtn.remove();
       }
+
       renderFinalizedTeamsView();
     }
 
-    finalizeTeamBtn.addEventListener('click', () => {
+    function saveTeamToTournament() {
       const customName = teamCustomNameInput.value.trim();
       if (!customName) return alert("Por favor ingresa el nombre del equipo.");
+      if (currentPlantelTemp.length < 3) return alert("Se necesitan al menos 3 integrantes.");
+
       const symbol = teamSymbolSelect.value;
-
-      const selects = document.querySelectorAll('.lineup-pos');
-      const lineup = { 1: null, 2: null, 3: null };
-      let count = 0;
-
-      selects.forEach(sel => {
-        const pos = sel.value;
-        const name = sel.getAttribute('data-member');
-        if (pos !== "0") {
-          if (lineup[pos]) { alert("No puedes repetir la misma posición."); throw new Error("Duplicado"); }
-          lineup[pos] = name;
-          count++;
-        }
-      });
-
-      if (count !== 3) return alert("Debes seleccionar exactamente 3 titulares.");
-
       const teamId = 'team_' + Date.now();
+
       finalizedTeams[teamId] = {
         name: customName,
         symbol: symbol,
-        roster: [...currentPlantelTemp],
-        lineup: [lineup[1], lineup[2], lineup[3]]
+        roster: [...currentPlantelTemp]
       };
 
-      localStorage.setItem('karate_finalized_teams_v5', JSON.stringify(finalizedTeams));
+      localStorage.setItem('karate_finalized_teams_v6', JSON.stringify(finalizedTeams));
       currentPlantelTemp = [];
       teamCustomNameInput.value = '';
+      const btn = document.getElementById('saveTeamBtn');
+      if (btn) btn.remove();
       renderRosterUI();
-      alert("¡Equipo guardado con éxito! Ya puedes registrar el siguiente equipo.");
-    });
+      alert("¡Equipo guardado con éxito!");
+    }
 
     function renderFinalizedTeamsView() {
       finalizedTeamsContainer.innerHTML = '';
       const keys = Object.keys(finalizedTeams);
       if (keys.length > 0) {
-        finalizedTeamsContainer.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--accent-color);">Equipos Listos en el Torneo:</h3>`;
+        finalizedTeamsContainer.innerHTML = `<h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--accent-color);">Equipos Listos (${keys.length}):</h3>`;
         keys.forEach(id => {
           const t = finalizedTeams[id];
           const img = TEAM_IMAGES[t.symbol];
@@ -873,7 +850,7 @@ U. de Chile"></textarea>
             <div style="background:#222; padding:8px 12px; border-radius:6px; margin-bottom:6px; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <img src="${img}" style="width:24px; height:24px; border-radius:4px; object-fit:cover;" alt="logo">
-                <div><strong>${t.name}</strong> (${t.lineup.join(', ')})</div>
+                <div><strong>${t.name}</strong> (Plantel: ${t.roster.length} karatekas)</div>
               </div>
               <button class="btn-sm btn-delete" onclick="removeFinalizedTeam('${id}')">X</button>
             </div>
@@ -890,7 +867,7 @@ U. de Chile"></textarea>
 
     window.removeFinalizedTeam = function(id) {
       delete finalizedTeams[id];
-      localStorage.setItem('karate_finalized_teams_v5', JSON.stringify(finalizedTeams));
+      localStorage.setItem('karate_finalized_teams_v6', JSON.stringify(finalizedTeams));
       renderRosterUI();
       teamTournamentCard.style.display = 'none';
     };
@@ -916,13 +893,9 @@ U. de Chile"></textarea>
         const t1 = finalizedTeams[keys[i]];
         const t2 = finalizedTeams[keys[i+1]];
         matches.push({
-          t1Id: keys[i], t1Name: t1.name, t1Symbol: t1.symbol,
-          t2Id: keys[i+1], t2Name: t2.name, t2Symbol: t2.symbol,
-          bouts: [
-            { p1: t1.lineup[0], p2: t2.lineup[0], winner: null },
-            { p1: t1.lineup[1], p2: t2.lineup[1], winner: null },
-            { p1: t1.lineup[2], p2: t2.lineup[2], winner: null }
-          ],
+          t1Id: keys[i], t1Name: t1.name, t1Symbol: t1.symbol, t1Lineup: null,
+          t2Id: keys[i+1], t2Name: t2.name, t2Symbol: t2.symbol, t2Lineup: null,
+          bouts: null,
           winner: null
         });
       }
@@ -932,12 +905,78 @@ U. de Chile"></textarea>
         restingTeam: restingTeam
       };
 
-      localStorage.setItem('karate_team_tournament_v5', JSON.stringify(teamTournamentData));
+      localStorage.setItem('karate_team_tournament_v6', JSON.stringify(teamTournamentData));
       renderTeamTournament();
     });
 
+    window.openTeamLineupModal = function(rNum, matchIdx, teamSide) {
+      const match = teamTournamentData.rounds[rNum][matchIdx];
+      const teamId = teamSide === 1 ? match.t1Id : match.t2Id;
+      const teamName = teamSide === 1 ? match.t1Name : match.t2Name;
+      const teamData = finalizedTeams[teamId];
+
+      let optionsHTML = teamData.roster.map(m => `<option value="${m}">${m}</option>`).join('');
+
+      let modalOverlay = document.getElementById('lineupModalOverlay');
+      if (modalOverlay) modalOverlay.remove();
+
+      modalOverlay = document.createElement('div');
+      modalOverlay.id = 'lineupModalOverlay';
+      modalOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:1000; padding:15px;';
+      modalOverlay.innerHTML = `
+        <div style="background:#181818; border:1px solid #333; border-radius:12px; padding:20px; width:100%; max-width:380px;">
+          <h3 style="font-size:1rem; margin-bottom:10px; color:var(--accent-color);">Alineación: ${teamName}</h3>
+          <p style="font-size:0.8rem; color:#888; margin-bottom:12px;">Elige 3 titulares para este encuentro:</p>
+          
+          <div style="margin-bottom:10px;"><label>1° Titular:</label><select id="modalPos1" style="margin-top:4px;">${optionsHTML}</select></div>
+          <div style="margin-bottom:10px;"><label>2° Titular:</label><select id="modalPos2" style="margin-top:4px;">${optionsHTML}</select></div>
+          <div style="margin-bottom:15px;"><label>3° Titular:</label><select id="modalPos3" style="margin-top:4px;">${optionsHTML}</select></div>
+          
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" style="padding:10px;" onclick="saveModalLineup(${rNum}, ${matchIdx}, ${teamSide})">Guardar</button>
+            <button class="btn btn-secondary" style="padding:10px; margin-top:0;" onclick="document.getElementById('lineupModalOverlay').remove()">Cancelar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modalOverlay);
+    };
+
+    window.saveModalLineup = function(rNum, matchIdx, teamSide) {
+      const p1 = document.getElementById('modalPos1').value;
+      const p2 = document.getElementById('modalPos2').value;
+      const p3 = document.getElementById('modalPos3').value;
+
+      if (p1 === p2 || p1 === p3 || p2 === p3) {
+        return alert("No puedes repetir al mismo karateka en dos posiciones.");
+      }
+
+      const match = teamTournamentData.rounds[rNum][matchIdx];
+      const lineup = [p1, p2, p3];
+
+      if (teamSide === 1) {
+        match.t1Lineup = lineup;
+      } else {
+        match.t2Lineup = lineup;
+      }
+
+      // Si ambos equipos ya tienen alineación, crear los 3 combates individuales
+      if (match.t1Lineup && match.t2Lineup && !match.bouts) {
+        match.bouts = [
+          { p1: match.t1Lineup[0], p2: match.t2Lineup[0], winner: null },
+          { p1: match.t1Lineup[1], p2: match.t2Lineup[1], winner: null },
+          { p1: match.t1Lineup[2], p2: match.t2Lineup[2], winner: null }
+        ];
+      }
+
+      localStorage.setItem('karate_team_tournament_v6', JSON.stringify(teamTournamentData));
+      document.getElementById('lineupModalOverlay').remove();
+      renderTeamTournament();
+    };
+
     window.selectTeamBoutWinner = function(rNum, matchIdx, boutIdx, winnerNum) {
       const match = teamTournamentData.rounds[rNum][matchIdx];
+      if (!match.bouts) return alert("Primero debes definir la alineación de ambos equipos.");
+
       match.bouts[boutIdx].winner = winnerNum;
 
       let t1Wins = 0, t2Wins = 0;
@@ -951,7 +990,7 @@ U. de Chile"></textarea>
 
       checkAndBuildNextTeamRound(rNum);
 
-      localStorage.setItem('karate_team_tournament_v5', JSON.stringify(teamTournamentData));
+      localStorage.setItem('karate_team_tournament_v6', JSON.stringify(teamTournamentData));
       renderTeamTournament();
     };
 
@@ -986,17 +1025,11 @@ U. de Chile"></textarea>
             for (let i = 0; i < limit; i += 2) {
               const tw1 = roundWinners[i];
               const tw2 = roundWinners[i+1];
-              const t1Data = finalizedTeams[tw1.id];
-              const t2Data = finalizedTeams[tw2.id];
 
               nextMatches.push({
-                t1Id: tw1.id, t1Name: tw1.name, t1Symbol: tw1.symbol,
-                t2Id: tw2.id, t2Name: tw2.name, t2Symbol: tw2.symbol,
-                bouts: [
-                  { p1: t1Data.lineup[0], p2: t2Data.lineup[0], winner: null },
-                  { p1: t1Data.lineup[1], p2: t2Data.lineup[1], winner: null },
-                  { p1: t1Data.lineup[2], p2: t2Data.lineup[2], winner: null }
-                ],
+                t1Id: tw1.id, t1Name: tw1.name, t1Symbol: tw1.symbol, t1Lineup: null,
+                t2Id: tw2.id, t2Name: tw2.name, t2Symbol: tw2.symbol, t2Lineup: null,
+                bouts: null,
                 winner: null
               });
             }
@@ -1021,35 +1054,54 @@ U. de Chile"></textarea>
         teamTournamentData.rounds[rNum].forEach((m, idx) => {
           const matchDiv = document.createElement('div');
           matchDiv.className = 'match-box-copa';
-          matchDiv.style.width = '190px';
 
           const img1 = TEAM_IMAGES[m.t1Symbol];
           const img2 = TEAM_IMAGES[m.t2Symbol];
 
-          let boutsHTML = '';
-          m.bouts.forEach((b, bIdx) => {
-            boutsHTML += `
-              <div style="font-size:0.65rem; color:#aaa; margin-top:4px; text-align:center;">Titular ${bIdx+1}</div>
-              <div style="display:flex; gap:3px;">
-                <button class="btn-sm ${b.winner===1?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 1)">${b.p1}</button>
-                <button class="btn-sm ${b.winner===2?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 2)">${b.p2}</button>
+          let contentHTML = '';
+
+          if (!m.bouts) {
+            // Botones para configurar alineaciones de cada equipo
+            contentHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding:4px; background:#121216; border-radius:8px;">
+                <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img1}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t1Name}</div>
+                <button class="btn-sm btn-edit" onclick="openTeamLineupModal(${rNum}, ${idx}, 1)">${m.t1Lineup ? 'Editar' : 'Alinear'}</button>
+              </div>
+              <div style="text-align:center; font-size:0.65rem; color:var(--text-muted); font-weight:bold;">VS</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px; padding:4px; background:#121216; border-radius:8px;">
+                <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img2}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t2Name}</div>
+                <button class="btn-sm btn-edit" onclick="openTeamLineupModal(${rNum}, ${idx}, 2)">${m.t2Lineup ? 'Editar' : 'Alinear'}</button>
+              </div>
+              <div style="font-size:0.7rem; color:var(--accent-color); text-align:center; margin-top:6px;">⚠️ Alinea ambos equipos para iniciar los combates</div>
+            `;
+          } else {
+            let boutsHTML = '';
+            m.bouts.forEach((b, bIdx) => {
+              boutsHTML += `
+                <div style="font-size:0.65rem; color:#aaa; margin-top:4px; text-align:center;">Titular ${bIdx+1}</div>
+                <div style="display:flex; gap:3px;">
+                  <button class="btn-sm ${b.winner===1?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 1)">${b.p1}</button>
+                  <button class="btn-sm ${b.winner===2?'btn-success':'btn-secondary'}" style="flex:1; font-size:0.65rem; padding:4px;" onclick="selectTeamBoutWinner(${rNum}, ${idx}, ${bIdx}, 2)">${b.p2}</button>
+                </div>
+              `;
+            });
+
+            contentHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding:2px; background:#121216; border-radius:8px;">
+                <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img1}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t1Name}</div>
+              </div>
+              <div style="text-align:center; font-size:0.65rem; color:var(--text-muted); font-weight:bold;">VS</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px; padding:2px; background:#121216; border-radius:8px;">
+                <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img2}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t2Name}</div>
+              </div>
+              ${boutsHTML}
+              <div style="margin-top:6px; text-align:center; font-size:0.7rem; font-weight:bold; color:${m.winner?'#4caf50':'#888'}">
+                ${m.winner ? '🏆 Ganador: ' + (m.winner === 1 ? m.t1Name : m.t2Name) : 'En juego'}
               </div>
             `;
-          });
+          }
 
-          matchDiv.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding:2px; background:#121216; border-radius:8px;">
-              <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img1}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t1Name}</div>
-            </div>
-            <div style="text-align:center; font-size:0.65rem; color:var(--text-muted); font-weight:bold;">VS</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px; padding:2px; background:#121216; border-radius:8px;">
-              <div style="display:flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:bold;"><img src="${img2}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">${m.t2Name}</div>
-            </div>
-            ${boutsHTML}
-            <div style="margin-top:6px; text-align:center; font-size:0.7rem; font-weight:bold; color:${m.winner?'#4caf50':'#888'}">
-              ${m.winner ? '🏆 Ganador: ' + (m.winner === 1 ? m.t1Name : m.t2Name) : 'En juego'}
-            </div>
-          `;
+          matchDiv.innerHTML = contentHTML;
           col.appendChild(matchDiv);
         });
         teamTournamentTree.appendChild(col);
@@ -1098,7 +1150,7 @@ U. de Chile"></textarea>
     window.clearTeamTournament = function() {
       if (confirm("¿Deseas reiniciar y borrar el torneo de equipos?")) {
         teamTournamentData = null;
-        localStorage.removeItem('karate_team_tournament_v5');
+        localStorage.removeItem('karate_team_tournament_v6');
         teamTournamentCard.style.display = 'none';
       }
     };
